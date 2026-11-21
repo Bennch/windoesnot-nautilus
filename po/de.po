@@ -7175,3 +7175,11 @@ msgstr "Beenden"
 
 #~ msgid "Prefere_nces"
 #~ msgstr "_Einstellungen"
+
+#: src/nautilus-sidebar.c
+msgid "This PC"
+msgstr "Dieser PC"
+
+#: src/nautilus-sidebar.c
+msgid "Open all drives"
+msgstr "Alle Laufwerke öffnen"
