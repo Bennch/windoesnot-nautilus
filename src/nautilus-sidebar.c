@@ -640,6 +640,16 @@ on_account_updated (GObject    *object,
 
 #endif
 
+/* WinDoesNot: built-in places can be hidden (gsettings org.gnome.nautilus.preferences sidebar-hidden-places:
+ * "this-pc", "recent", "starred", "network", "trash"). */
+static gboolean
+place_is_hidden (const char *name)
+{
+    g_auto (GStrv) hidden = g_settings_get_strv (nautilus_preferences, "sidebar-hidden-places");
+
+    return hidden != NULL && g_strv_contains ((const char * const *) hidden, name);
+}
+
 static void
 update_places (NautilusSidebar *sidebar)
 {
@@ -702,15 +712,18 @@ update_places (NautilusSidebar *sidebar)
     g_free (home_uri);
 
     /* WinDoesNot: "This PC", the drives of the computer (computer:///), right below Home as in Windows Explorer */
-    start_icon = g_themed_icon_new_with_default_fallbacks ("computer-symbolic");
-    add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
-               NAUTILUS_SIDEBAR_SECTION_DEFAULT_LOCATIONS,
-               _("This PC"), start_icon, NULL, "computer:///",
-               NULL, NULL, NULL, NULL, 0,
-               _("Open all drives"));
-    g_object_unref (start_icon);
+    if (!place_is_hidden ("this-pc"))
+    {
+        start_icon = g_themed_icon_new_with_default_fallbacks ("computer-symbolic");
+        add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
+                   NAUTILUS_SIDEBAR_SECTION_DEFAULT_LOCATIONS,
+                   _("This PC"), start_icon, NULL, "computer:///",
+                   NULL, NULL, NULL, NULL, 0,
+                   _("Open all drives"));
+        g_object_unref (start_icon);
+    }
 
-    if (should_show_recent (sidebar))
+    if (should_show_recent (sidebar) && !place_is_hidden ("recent"))
     {
         start_icon = g_themed_icon_new_with_default_fallbacks ("document-open-recent-symbolic");
         add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
@@ -721,13 +734,16 @@ update_places (NautilusSidebar *sidebar)
         g_object_unref (start_icon);
     }
 
-    start_icon = g_themed_icon_new_with_default_fallbacks ("starred-symbolic");
-    add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
-               NAUTILUS_SIDEBAR_SECTION_DEFAULT_LOCATIONS,
-               _("Starred"), start_icon, NULL, SCHEME_STARRED ":///",
-               NULL, NULL, NULL, NULL, 0,
-               _("Starred Files"));
-    g_object_unref (start_icon);
+    if (!place_is_hidden ("starred"))
+    {
+        start_icon = g_themed_icon_new_with_default_fallbacks ("starred-symbolic");
+        add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
+                   NAUTILUS_SIDEBAR_SECTION_DEFAULT_LOCATIONS,
+                   _("Starred"), start_icon, NULL, SCHEME_STARRED ":///",
+                   NULL, NULL, NULL, NULL, 0,
+                   _("Starred Files"));
+        g_object_unref (start_icon);
+    }
 
     /* desktop */
     if (sidebar->show_desktop)
@@ -747,16 +763,19 @@ update_places (NautilusSidebar *sidebar)
     }
 
     /* Network view */
-    start_icon = g_themed_icon_new_with_default_fallbacks (ICON_NAME_NETWORK_VIEW);
-    add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
-               NAUTILUS_SIDEBAR_SECTION_DEFAULT_LOCATIONS,
-               _("Network"), start_icon, NULL, SCHEME_NETWORK_VIEW ":///",
-               NULL, NULL, NULL, NULL, 0,
-               _("Open Network Locations"));
-    g_object_unref (start_icon);
+    if (!place_is_hidden ("network"))
+    {
+        start_icon = g_themed_icon_new_with_default_fallbacks (ICON_NAME_NETWORK_VIEW);
+        add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
+                   NAUTILUS_SIDEBAR_SECTION_DEFAULT_LOCATIONS,
+                   _("Network"), start_icon, NULL, SCHEME_NETWORK_VIEW ":///",
+                   NULL, NULL, NULL, NULL, 0,
+                   _("Open Network Locations"));
+        g_object_unref (start_icon);
+    }
 
     /* Trash */
-    if (sidebar->show_trash)
+    if (sidebar->show_trash && !place_is_hidden ("trash"))
     {
         start_icon = nautilus_trash_monitor_get_symbolic_icon ();
         sidebar->trash_row = add_place (sidebar, NAUTILUS_SIDEBAR_ROW_BUILT_IN,
@@ -3146,6 +3165,21 @@ show_row_popover (NautilusSidebarRow *row,
     g_object_unref (sidebar);
 }
 
+/* WinDoesNot: Ctrl + click on a place opens it in a new tab (as in a browser). */
+static NautilusOpenFlags
+sidebar_click_open_flags (GtkWidget *widget)
+{
+    GdkSeat *seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
+    GdkDevice *keyboard = seat != NULL ? gdk_seat_get_keyboard (seat) : NULL;
+
+    if (keyboard != NULL && (gdk_device_get_modifier_state (keyboard) & GDK_CONTROL_MASK) != 0)
+    {
+        return NAUTILUS_OPEN_FLAG_NEW_TAB;
+    }
+
+    return NAUTILUS_OPEN_FLAG_NORMAL;
+}
+
 static void
 on_row_activated (GtkListBox    *list_box,
                   GtkListBoxRow *row,
@@ -3163,7 +3197,7 @@ on_row_activated (GtkListBox    *list_box,
     }
 
     selected_row = NAUTILUS_SIDEBAR_ROW (gtk_list_box_get_selected_row (list_box));
-    open_row (selected_row, 0);
+    open_row (selected_row, sidebar_click_open_flags (GTK_WIDGET (list_box)));
 }
 
 static void
@@ -3563,6 +3597,8 @@ nautilus_sidebar_init (NautilusSidebar *sidebar)
                              G_CALLBACK (update_places), sidebar,
                              G_CONNECT_SWAPPED);
 
+    g_signal_connect_object (nautilus_preferences, "changed::sidebar-hidden-places",
+                             G_CALLBACK (update_places), sidebar, G_CONNECT_SWAPPED);
     g_signal_connect_object (nautilus_trash_monitor_get (), "trash-state-changed",
                              G_CALLBACK (update_trash_icon), sidebar,
                              G_CONNECT_SWAPPED);
