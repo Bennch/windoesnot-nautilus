@@ -402,6 +402,26 @@ setup_header (GtkSignalListItemFactory *factory,
     gtk_list_header_set_child (listheader, button);
 }
 
+/* The extension sets "wdn_hide" = "1" on the drive of the system disk: it is shown once, as the root filesystem item
+ * ("<disk name> (System disk)"), so there is no second entry that cannot be mounted. */
+static gboolean
+computer_item_visible (gpointer item,
+                       gpointer user_data)
+{
+    static GQuark hide_q = 0;
+    NautilusFile *file = nautilus_view_item_get_file (NAUTILUS_VIEW_ITEM (item));
+    g_autofree char *hide = NULL;
+
+    if (hide_q == 0)
+    {
+        hide_q = g_quark_from_static_string ("wdn_hide");
+    }
+
+    hide = nautilus_file_get_string_attribute_q (file, hide_q);
+
+    return !(hide != NULL && hide[0] == '1');
+}
+
 static void
 on_model_changed (NautilusComputerView *self)
 {
@@ -409,6 +429,9 @@ on_model_changed (NautilusComputerView *self)
 
     if (model != NULL)
     {
+        g_autoptr (GtkCustomFilter) filter = gtk_custom_filter_new (computer_item_visible, NULL, NULL);
+
+        nautilus_view_model_set_filter (model, GTK_FILTER (filter));
         g_autoptr (GtkCustomSorter) sorter = gtk_custom_sorter_new (sort_computer_items, self, NULL);
         g_autoptr (GtkCustomSorter) sections_sorter = gtk_custom_sorter_new (sort_computer_sections, self, NULL);
 

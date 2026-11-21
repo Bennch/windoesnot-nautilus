@@ -1,7 +1,7 @@
 # WinDoesNot Files: Nautilus with a "This PC" view. Replaces the distribution's nautilus package.
 pkgname=windoesnot-nautilus
 pkgver=51.1
-pkgrel=6
+pkgrel=7
 pkgdesc="Files with a This PC view, sidebar improvements and a drives page (Nautilus fork for WinDoesNot)"
 url="https://github.com/Bennch/windoesnot-nautilus"
 arch=(x86_64)

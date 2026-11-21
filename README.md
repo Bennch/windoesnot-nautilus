@@ -14,6 +14,7 @@ Upstream's own readme is kept as [README.upstream.md](README.upstream.md).
 | **This PC** in the sidebar | A built-in place directly below *Home* that opens `computer:///`. |
 | **Drives view** at `computer:///` | Collapsible categories: **Devices and Drives** (system and local disks), **External Drives** (USB sticks, removable disks, DVD/CD, floppy) and **Network Addresses**. Every drive is a tile with an icon, a **fill bar** (it follows the accent colour and turns red above 90 %) and "233 GB free of 1.8 TB". Removable drives have an eject button. |
 | **Start page** | A new window starts at **This PC**. The GSettings key `org.gnome.nautilus.preferences start-page` (`computer` by default, or `home`) switches it; a folder given on the command line always wins. |
+| **System disk** | The disk that holds `/` appears once, as "<disk name> (System disk)" (it opens the root folder); its second drive entry, which cannot be mounted, is hidden. |
 | **Icon size** | `Ctrl` + scroll or `Ctrl` + `+`/`-` in the drives view (small, medium, large; remembered in `computer-view-zoom-level`). |
 | **Windows-like order** | System disk, local disks, removable disks, optical drives, network. |
 | **Ctrl + click** in the sidebar | Opens the place in a **new tab**. |

@@ -90,11 +90,12 @@ static void
 update_from_file (NautilusComputerCell *self)
 {
     g_autoptr (NautilusViewItem) item = nautilus_view_cell_get_item (NAUTILUS_VIEW_CELL (self));
-    static GQuark percent_q = 0, space_q = 0;
+    static GQuark percent_q = 0, space_q = 0, label_q = 0;
     NautilusFile *file;
     g_autoptr (GIcon) icon = NULL;
     g_autofree char *percent_text = NULL;
     g_autofree char *space_text = NULL;
+    g_autofree char *label_text = NULL;
     const char *name = NULL;
 
     g_return_if_fail (item != NULL);
@@ -103,13 +104,16 @@ update_from_file (NautilusComputerCell *self)
     {
         percent_q = g_quark_from_static_string ("wdn_percent");
         space_q = g_quark_from_static_string ("wdn_space");
+        label_q = g_quark_from_static_string ("wdn_label");
     }
 
     file = nautilus_view_item_get_file (item);
     icon = nautilus_file_get_gicon (file, NAUTILUS_FILE_ICON_FLAGS_NONE);
     gtk_image_set_from_gicon (GTK_IMAGE (self->icon), icon);
 
-    name = nautilus_file_get_display_name (file);
+    /* The extension may give the item a better name (the system disk: "<disk name> (System disk)") */
+    label_text = nautilus_file_get_string_attribute_q (file, label_q);
+    name = (label_text != NULL && label_text[0] != '\0') ? label_text : nautilus_file_get_display_name (file);
     gtk_label_set_label (GTK_LABEL (self->name), name);
 
     percent_text = nautilus_file_get_string_attribute_q (file, percent_q);
