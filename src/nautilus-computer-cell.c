@@ -63,6 +63,23 @@ update_collapsed (NautilusComputerCell *self)
     g_object_get (view, "collapsed-mask", &mask, NULL);
     collapsed = (mask & (1u << cell_section (nautilus_view_item_get_file (item)))) != 0;
 
+    /* The extension sets "wdn_hide" = "1" on the drive item of the system disk: the root item carries its name, so this
+     * second entry (which cannot be mounted) takes no room, the same way a folded section does. */
+    {
+        static GQuark hide_q = 0;
+        g_autofree char *hide = NULL;
+
+        if (hide_q == 0)
+        {
+            hide_q = g_quark_from_static_string ("wdn_hide");
+        }
+        hide = nautilus_file_get_string_attribute_q (nautilus_view_item_get_file (item), hide_q);
+        if (hide != NULL && hide[0] == '1')
+        {
+            collapsed = TRUE;
+        }
+    }
+
     gtk_widget_set_visible (self->box, !collapsed);
     if (row != NULL)
     {
