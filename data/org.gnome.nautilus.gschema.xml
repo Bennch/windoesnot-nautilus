@@ -82,6 +82,11 @@
       <summary>Always use the location entry, instead of the pathbar</summary>
       <description>If set to true, Files will always use a textual input entry for the location toolbar, instead of the pathbar.</description>
     </key>
+    <key name="start-page" type="s">
+      <default>'computer'</default>
+      <summary>Where a new window starts</summary>
+      <description>"computer" opens This PC (all drives), "home" opens the home folder. A folder given on the command line always wins.</description>
+    </key>
     <key name="computer-view-zoom-level" type="i">
       <default>1</default>
       <range min="0" max="2"/>

@@ -550,6 +550,21 @@ nautilus_application_select (NautilusApplication  *self,
     }
 }
 
+/* WinDoesNot: where a new window starts when no folder was asked for. "This PC" (computer:///) is the default; the GSettings
+ * key org.gnome.nautilus.preferences start-page ("computer" or "home") switches back to the home folder. */
+static GFile *
+get_default_start_location (void)
+{
+    g_autofree char *start_page = g_settings_get_string (nautilus_preferences, "start-page");
+
+    if (g_strcmp0 (start_page, "home") != 0)
+    {
+        return g_file_new_for_uri ("computer:///");
+    }
+
+    return g_file_new_for_path (g_get_home_dir ());
+}
+
 static void
 action_new_window (GSimpleAction *action,
                    GVariant      *parameter,
@@ -559,7 +574,7 @@ action_new_window (GSimpleAction *action,
     g_autoptr (GFile) home = NULL;
 
     application = NAUTILUS_APPLICATION (user_data);
-    home = g_file_new_for_path (g_get_home_dir ());
+    home = get_default_start_location ();
 
     nautilus_application_open_location_full (application, home,
                                              NAUTILUS_OPEN_FLAG_NEW_WINDOW,
@@ -722,7 +737,7 @@ nautilus_application_activate (GApplication *app)
     }
 
     files = g_malloc0 (2 * sizeof (GFile *));
-    files[0] = g_file_new_for_path (g_get_home_dir ());
+    files[0] = get_default_start_location ();
     nautilus_application_open (app, files, 1, NULL);
 
     g_object_unref (files[0]);
@@ -778,7 +793,7 @@ nautilus_application_handle_file_args (NautilusApplication *self,
     }
     else if (g_variant_dict_contains (options, "new-window"))
     {
-        file = g_file_new_for_path (g_get_home_dir ());
+        file = get_default_start_location ();
         g_ptr_array_add (file_array, file);
     }
     else

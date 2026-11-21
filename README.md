@@ -13,6 +13,7 @@ Upstream's own readme is kept as [README.upstream.md](README.upstream.md).
 |---|---|
 | **This PC** in the sidebar | A built-in place directly below *Home* that opens `computer:///`. |
 | **Drives view** at `computer:///` | Collapsible categories: **Devices and Drives** (system and local disks), **External Drives** (USB sticks, removable disks, DVD/CD, floppy) and **Network Addresses**. Every drive is a tile with an icon, a **fill bar** (it follows the accent colour and turns red above 90 %) and "233 GB free of 1.8 TB". Removable drives have an eject button. |
+| **Start page** | A new window starts at **This PC**. The GSettings key `org.gnome.nautilus.preferences start-page` (`computer` by default, or `home`) switches it; a folder given on the command line always wins. |
 | **Icon size** | `Ctrl` + scroll or `Ctrl` + `+`/`-` in the drives view (small, medium, large; remembered in `computer-view-zoom-level`). |
 | **Windows-like order** | System disk, local disks, removable disks, optical drives, network. |
 | **Ctrl + click** in the sidebar | Opens the place in a **new tab**. |
@@ -64,6 +65,7 @@ Verbesserungen der Seitenleiste, die sich Nutzer schon lange wünschen. Alles an
 
 ## Was anders ist
 
+- **Startseite:** Ein neues Fenster startet bei „Dieser PC“ (GSettings-Schlüssel `start-page`, `computer` oder `home`; ein übergebener Ordner gewinnt immer).
 - **„Dieser PC“** steht in der Seitenleiste direkt unter „Persönlicher Ordner“ und öffnet `computer:///`.
 - **Laufwerksansicht** mit einklappbaren Kategorien: **Geräte und Laufwerke** (System und lokale Platten),
   **Externe Laufwerke** (USB-Sticks, Wechseldatenträger, DVD/CD, Diskette) und **Netzwerkadressen**. Jedes Laufwerk ist
