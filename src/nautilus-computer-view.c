@@ -472,7 +472,8 @@ on_model_changed (NautilusComputerView *self)
         self->filter = GTK_FILTER (gtk_custom_filter_new (computer_item_visible, NULL, NULL));
         nautilus_view_model_set_filter (model, self->filter);
         /* The extension fills in its attributes a moment after an item is added: look again when items change */
-        g_signal_connect_swapped (model, "items-changed", G_CALLBACK (on_items_changed), self);
+        /* connect_object: the handler is dropped when this view goes away (the model can outlive it while the folder changes) */
+        g_signal_connect_object (model, "items-changed", G_CALLBACK (on_items_changed), self, G_CONNECT_SWAPPED);
         g_autoptr (GtkCustomSorter) sorter = gtk_custom_sorter_new (sort_computer_items, self, NULL);
         g_autoptr (GtkCustomSorter) sections_sorter = gtk_custom_sorter_new (sort_computer_sections, self, NULL);
 
