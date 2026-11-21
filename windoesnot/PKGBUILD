@@ -1,0 +1,43 @@
+# WinDoesNot Files: Nautilus with a "This PC" view. Replaces the distribution's nautilus package.
+pkgname=windoesnot-nautilus
+pkgver=51.1
+pkgrel=5
+pkgdesc="Files with a This PC view, sidebar improvements and a drives page (Nautilus fork for WinDoesNot)"
+url="https://github.com/Bennch/windoesnot-nautilus"
+arch=(x86_64)
+license=(GPL-3.0-or-later)
+depends=(
+  cairo dconf gdk-pixbuf2 gexiv2 glib2 glibc glycin glycin-gtk4 gnome-autoar gnome-desktop-4 graphene gst-plugins-base-libs
+  gstreamer gtk4 gvfs hicolor-icon-theme icu libadwaita libcloudproviders libgcc libportal libportal-gtk4 libx11 localsearch
+  pango tinysparql wayland xdg-user-dirs-gtk libnautilus-extension.so nautilus-python
+)
+makedepends=(appstream blueprint-compiler gobject-introspection glib2-devel meson git)
+provides=("nautilus=$pkgver")
+conflicts=(nautilus)
+source=("git+$url.git#tag=v$pkgver-wdn$pkgrel")
+sha256sums=('SKIP')
+
+build() {
+  arch-meson windoesnot-nautilus build -D docs=false -D packagekit=false -D selinux=false -D tests=none
+  meson compile -C build
+}
+
+_pick() {
+  local f d
+  for f; do
+    d="$srcdir/dropped/${f#$pkgdir/}"
+    mkdir -p "$(dirname "$d")"
+    mv "$f" "$d"
+    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
+  done
+}
+
+package() {
+  meson install -C build --no-rebuild --destdir "$pkgdir"
+  install -Dm644 windoesnot-nautilus/windoesnot/windoesnot-computer.py \
+    "$pkgdir/usr/share/nautilus-python/extensions/windoesnot-computer.py"
+  cd "$pkgdir"
+  _pick usr/include
+  _pick usr/lib/{girepository-1.0,libnautilus-extension*,pkgconfig}
+  _pick usr/share/gir-1.0
+}
