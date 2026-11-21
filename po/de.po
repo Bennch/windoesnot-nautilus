@@ -7183,3 +7183,15 @@ msgstr "Dieser PC"
 #: src/nautilus-sidebar.c
 msgid "Open all drives"
 msgstr "Alle Laufwerke öffnen"
+
+#: src/nautilus-computer-view.c
+msgid "Devices and Drives"
+msgstr "Geräte und Laufwerke"
+
+#: src/nautilus-computer-view.c
+msgid "Network Addresses"
+msgstr "Netzwerkadressen"
+
+#: src/nautilus-computer-view.c
+msgid "External Drives"
+msgstr "Externe Laufwerke"

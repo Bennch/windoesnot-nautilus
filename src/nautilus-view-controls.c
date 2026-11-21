@@ -72,7 +72,8 @@ adjust_to_location (NautilusViewControls *self,
 {
     GFile *location = nautilus_window_slot_get_location (slot);
     gboolean has_menu = location != NULL &&
-                        !nautilus_is_root_for_scheme (location, SCHEME_NETWORK_VIEW);
+                        !nautilus_is_root_for_scheme (location, SCHEME_NETWORK_VIEW) &&
+                        !nautilus_is_root_for_scheme (location, SCHEME_COMPUTER);
 
     gtk_widget_set_sensitive (self->view_split_button, has_menu);
 

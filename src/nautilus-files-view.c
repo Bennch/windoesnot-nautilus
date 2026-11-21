@@ -60,6 +60,7 @@
 #include "nautilus-metadata.h"
 #include "nautilus-mime-actions.h"
 #include "nautilus-network-view.h"
+#include "nautilus-computer-view.h"
 #include "nautilus-module.h"
 #include "nautilus-new-folder-dialog.h"
 #include "nautilus-query.h"
@@ -7316,7 +7317,7 @@ nautilus_files_view_update_actions_state (NautilusFilesView *self)
     NautilusMode mode = nautilus_window_slot_get_mode (self->slot);
     g_autolist (NautilusFile) selection = NULL;
     GList *l;
-    gboolean is_network_view = NAUTILUS_IS_NETWORK_VIEW (self->list_base);
+    gboolean is_network_view = NAUTILUS_IS_NETWORK_VIEW (self->list_base) || NAUTILUS_IS_COMPUTER_VIEW (self->list_base);
     gboolean selection_contains_home_dir;
     gboolean selection_contains_recent;
     gboolean selection_contains_search;
@@ -9649,6 +9650,12 @@ create_inner_view (NautilusFilesView *self,
         }
         break;
 
+        case NAUTILUS_VIEW_COMPUTER_ID:
+        {
+            self->list_base = NAUTILUS_LIST_BASE (nautilus_computer_view_new ());
+        }
+        break;
+
         default:
         {
             g_critical ("Unknown view type ID: %d. Falling back to list.", id);
@@ -9684,6 +9691,7 @@ nautilus_files_view_get_toggle_icon_name (NautilusFilesView *self)
         break;
 
         case NAUTILUS_VIEW_NETWORK_ID:
+        case NAUTILUS_VIEW_COMPUTER_ID:
         case NAUTILUS_VIEW_GRID_ID:
         {
             return "view-list-symbolic";
@@ -9725,6 +9733,7 @@ nautilus_files_view_get_toggle_tooltip (NautilusFilesView  *self,
         break;
 
         case NAUTILUS_VIEW_NETWORK_ID:
+        case NAUTILUS_VIEW_COMPUTER_ID:
         case NAUTILUS_VIEW_GRID_ID:
         {
             if (description != NULL)

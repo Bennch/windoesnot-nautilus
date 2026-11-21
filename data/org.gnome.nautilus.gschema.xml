@@ -82,6 +82,12 @@
       <summary>Always use the location entry, instead of the pathbar</summary>
       <description>If set to true, Files will always use a textual input entry for the location toolbar, instead of the pathbar.</description>
     </key>
+    <key name="computer-view-zoom-level" type="i">
+      <default>1</default>
+      <range min="0" max="2"/>
+      <summary>Icon size in the This PC view</summary>
+      <description>0 small, 1 medium and 2 large icons in the drives view of computer:///.</description>
+    </key>
     <key name="sidebar-hidden-places" type="as">
       <default>[]</default>
       <summary>Built-in sidebar places that are hidden</summary>
