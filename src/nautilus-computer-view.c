@@ -23,6 +23,9 @@ struct _NautilusComputerView
     GtkListView *view_ui;
     guint collapsed_mask;   /* bit n set: section n is folded */
     gint zoom_level;
+    GtkFilter *filter;      /* hides the drive item of the system disk */
+    guint refilter_id;
+    guint refilter_rounds;
 };
 
 enum
@@ -258,6 +261,11 @@ nautilus_computer_view_get_property (GObject    *object,
 static void
 nautilus_computer_view_dispose (GObject *object)
 {
+    NautilusComputerView *self = NAUTILUS_COMPUTER_VIEW (object);
+
+    g_clear_handle_id (&self->refilter_id, g_source_remove);
+    g_clear_object (&self->filter);
+
     G_OBJECT_CLASS (nautilus_computer_view_parent_class)->dispose (object);
 }
 
@@ -422,6 +430,37 @@ computer_item_visible (gpointer item,
     return !(hide != NULL && hide[0] == '1');
 }
 
+static gboolean
+on_refilter (gpointer user_data)
+{
+    NautilusComputerView *self = NAUTILUS_COMPUTER_VIEW (user_data);
+
+    self->refilter_id = 0;
+    if (self->filter != NULL)
+    {
+        gtk_filter_changed (self->filter, GTK_FILTER_CHANGE_DIFFERENT);
+    }
+
+    /* A second look a little later, for attributes the extension sets after the first round */
+    if (self->refilter_rounds > 0)
+    {
+        self->refilter_rounds--;
+        self->refilter_id = g_timeout_add (1000, on_refilter, self);
+    }
+
+    return G_SOURCE_REMOVE;
+}
+
+static void
+on_items_changed (NautilusComputerView *self)
+{
+    if (self->refilter_id == 0)
+    {
+        self->refilter_rounds = 2;
+        self->refilter_id = g_timeout_add (250, on_refilter, self);
+    }
+}
+
 static void
 on_model_changed (NautilusComputerView *self)
 {
@@ -429,9 +468,11 @@ on_model_changed (NautilusComputerView *self)
 
     if (model != NULL)
     {
-        g_autoptr (GtkCustomFilter) filter = gtk_custom_filter_new (computer_item_visible, NULL, NULL);
-
-        nautilus_view_model_set_filter (model, GTK_FILTER (filter));
+        g_clear_object (&self->filter);
+        self->filter = GTK_FILTER (gtk_custom_filter_new (computer_item_visible, NULL, NULL));
+        nautilus_view_model_set_filter (model, self->filter);
+        /* The extension fills in its attributes a moment after an item is added: look again when items change */
+        g_signal_connect_swapped (model, "items-changed", G_CALLBACK (on_items_changed), self);
         g_autoptr (GtkCustomSorter) sorter = gtk_custom_sorter_new (sort_computer_items, self, NULL);
         g_autoptr (GtkCustomSorter) sections_sorter = gtk_custom_sorter_new (sort_computer_sections, self, NULL);
 
